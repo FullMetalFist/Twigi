@@ -9,6 +9,9 @@
 #import "TwitterFeedTableViewController.h"
 
 #import <STTwitter/STTwitter.h>
+#import "Constants.h"
+
+NSString *const CellTweetIdentifier = @"CellTweetID";
 
 @interface TwitterFeedTableViewController ()
 
@@ -26,7 +29,23 @@
     
     // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
     // self.navigationItem.rightBarButtonItem = self.editButtonItem;
-    STTwitterAPI *twitter = [STTwitterAPI tw]
+    
+    [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:CellTweetIdentifier];
+    STTwitterAPI *twitter = [STTwitterAPI twitterAPIAppOnlyWithConsumerKey:TWITTER_API_KEY consumerSecret:TWITTER_API_SEC];
+    [twitter verifyCredentialsWithSuccessBlock:^(NSString *username) {
+        // success
+        [twitter getUserTimelineWithScreenName:@"Tendigi" successBlock:^(NSArray *statuses) {
+            // success
+            self.twitterFeed = [NSMutableArray arrayWithArray:statuses];
+            [self.tableView reloadData];
+        } errorBlock:^(NSError *error) {
+            // error
+            NSLog(@"Error: %@", error.localizedDescription);
+        }];
+    } errorBlock:^(NSError *error) {
+        // error
+        NSLog(@"Error: %@", error.localizedDescription);
+    }];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -38,23 +57,34 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     // Return the number of sections.
-    return 0;
+    return 1;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     // Return the number of rows in the section.
-    return 0;
+    return [self.twitterFeed count];
 }
 
-/*
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:<#@"reuseIdentifier"#> forIndexPath:indexPath];
-    
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellTweetIdentifier forIndexPath:indexPath];
+    if (!cell) {
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellTweetIdentifier];
+    }
     // Configure the cell...
+    NSInteger idx = indexPath.row;
+    NSDictionary *tweet = self.twitterFeed[idx];
+    
+    cell.textLabel.text = tweet[@"text"];
     
     return cell;
 }
-*/
+
+- (void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+}
 
 /*
 // Override to support conditional editing of the table view.

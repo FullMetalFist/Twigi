@@ -11,5 +11,6 @@
 @interface Constants : NSObject
 
 extern NSString *const TWITTER_API_KEY;
+extern NSString *const TWITTER_API_SEC;
 
 @end
